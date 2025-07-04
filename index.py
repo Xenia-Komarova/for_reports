@@ -139,6 +139,7 @@ def generate_docs():
 
         data = {
             "ФИО": entry_fio.get(),
+            "ФИОДат": entry_fio_dat.get(),
             "Должность": entry_dolzhnost.get(),
             "Компания": entry_company.get(),
             "НачалоКомандировки": entry_date_start.get(),
@@ -147,15 +148,16 @@ def generate_docs():
             "ДатаПриказа": entry_order_date.get(),
             "ДатаОтчета": entry_report_date.get(),
             "Город": entry_city.get(),
-            "КолОрганизаторов": int(entry_org.get()),
-            "КолГостей": int(entry_guest.get()),
             "СуммаПредельныхРасходов": entry_sum_max.get(),
         }
-        data["КолУчастников"] = data["КолОрганизаторов"] + data["КолГостей"]
 
-        fill_template(data, "template_prikaz.docx", os.path.join(folder, "Приказ_готовый.docx"))
-        fill_template(data, "template_smeta.docx", os.path.join(folder, "Смета_готовая.docx"))
-        fill_template(data, "template_otchet.docx", os.path.join(folder, "Отчет_готовый.docx"), meetings)
+        fio = data["ФИО"]
+        start = data["НачалоКомандировки"]
+        end = data["КонецКомандировки"]
+
+        fill_template(data, "template_prikaz.docx", os.path.join(folder, f"Приказ_{fio} {start} - {end}.docx"))
+        fill_template(data, "template_smeta.docx", os.path.join(folder, f"Смета_{fio} {start} - {end}.docx"))
+        fill_template(data, "template_otchet.docx", os.path.join(folder, f"Отчет_{fio} {start} - {end}.docx"), meetings)
 
         messagebox.showinfo("Успех", f"Документы успешно созданы в папке:\n{folder}")
     except Exception as e:
@@ -167,6 +169,7 @@ root.title("Генератор командировочных документо
 
 fields = [
     ("ФИО", "ФИО"),
+    ("ФИО Дат", "ФИОДат"),
     ("Должность", "Должность"),
     ("Компания", "Компания"),
     ("Начало командировки", "НачалоКомандировки"),
@@ -175,8 +178,6 @@ fields = [
     ("Дата приказа", "ДатаПриказа"),
     ("Дата отчёта", "ДатаОтчета"),
     ("Город", "Город"),
-    ("Организаторы (число)", "КолОрганизаторов"),
-    ("Гости (число)", "КолГостей"),
     ("Сумма Предельных Расходов", "СуммаПредельныхРасходов")
 ]
 
@@ -191,6 +192,7 @@ for label_text, var_name in fields:
     entries[var_name] = entry
 
 entry_fio = entries["ФИО"]
+entry_fio_dat = entries["ФИОДат"]
 entry_dolzhnost = entries["Должность"]
 entry_company = entries["Компания"]
 entry_date_start = entries["НачалоКомандировки"]
@@ -199,8 +201,6 @@ entry_order_number = entries["НомерПриказа"]
 entry_order_date = entries["ДатаПриказа"]
 entry_report_date = entries["ДатаОтчета"]
 entry_city = entries["Город"]
-entry_org = entries["КолОрганизаторов"]
-entry_guest = entries["КолГостей"]
 entry_sum_max = entries["СуммаПредельныхРасходов"]
 
 # Блок встреч
@@ -217,9 +217,9 @@ entry_meeting_sum = tk.Entry(meeting_frame, width=10)
 
 tk.Label(meeting_frame, text="Компания").grid(row=0, column=0)
 tk.Label(meeting_frame, text="Дата").grid(row=0, column=1)
-tk.Label(meeting_frame, text="Орг.").grid(row=0, column=2)
-tk.Label(meeting_frame, text="Уч.").grid(row=0, column=3)
-tk.Label(meeting_frame, text="Гост.").grid(row=0, column=4)
+tk.Label(meeting_frame, text="Организаторы").grid(row=0, column=2)
+tk.Label(meeting_frame, text="Участники").grid(row=0, column=3)
+tk.Label(meeting_frame, text="Гости").grid(row=0, column=4)
 tk.Label(meeting_frame, text="Сумма").grid(row=0, column=5)
 
 entry_meeting_company.grid(row=1, column=0)
