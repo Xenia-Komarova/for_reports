@@ -46,8 +46,13 @@ def fill_template(data, template_path, output_path, meetings=None):
 
     doc.save(output_path)
 
-# Хранилище встреч
 meetings = []
+
+def update_meeting_listbox():
+    listbox_meetings.delete(0, tk.END)
+    for i, m in enumerate(meetings):
+        line = f"{i+1}. {m['Компания']} | {m['Дата']} | орг:{m['Организаторы']} уч:{m['Участники']} гост:{m['Гости']} сумма:{m['Сумма']}"
+        listbox_meetings.insert(tk.END, line)
 
 def add_meeting():
     try:
@@ -60,27 +65,77 @@ def add_meeting():
             "Сумма": int(entry_meeting_sum.get())
         }
         meetings.append(m)
-        messagebox.showinfo("Добавлено", f"Встреча с {m['Компания']} добавлена.")
+        update_meeting_listbox()
+        clear_meeting_fields()
+    except Exception as e:
+        messagebox.showerror("Ошибка", str(e))
+
+def clear_meeting_fields():
+    entry_meeting_company.delete(0, tk.END)
+    entry_meeting_date.delete(0, tk.END)
+    entry_meeting_org.delete(0, tk.END)
+    entry_meeting_uch.delete(0, tk.END)
+    entry_meeting_guest.delete(0, tk.END)
+    entry_meeting_sum.delete(0, tk.END)
+
+def clear_form():
+    for entry in entries.values():
+        entry.delete(0, tk.END)
+    meetings.clear()
+    update_meeting_listbox()
+    clear_meeting_fields()
+    messagebox.showinfo("Очищено", "Форма и список встреч очищены.")
+
+def on_select_meeting(event):
+    selection = listbox_meetings.curselection()
+    if selection:
+        idx = selection[0]
+        m = meetings[idx]
         entry_meeting_company.delete(0, tk.END)
         entry_meeting_date.delete(0, tk.END)
         entry_meeting_org.delete(0, tk.END)
         entry_meeting_uch.delete(0, tk.END)
         entry_meeting_guest.delete(0, tk.END)
         entry_meeting_sum.delete(0, tk.END)
-    except Exception as e:
-        messagebox.showerror("Ошибка", str(e))
 
-def clear_form():
-    for entry in entries.values():
-        entry.delete(0, tk.END)
-    meetings.clear()
-    messagebox.showinfo("Очищено", "Форма и список встреч очищены.")
+        entry_meeting_company.insert(0, m["Компания"])
+        entry_meeting_date.insert(0, m["Дата"])
+        entry_meeting_org.insert(0, m["Организаторы"])
+        entry_meeting_uch.insert(0, m["Участники"])
+        entry_meeting_guest.insert(0, m["Гости"])
+        entry_meeting_sum.insert(0, m["Сумма"])
+
+def update_selected_meeting():
+    try:
+        idx = listbox_meetings.curselection()[0]
+        meetings[idx] = {
+            "Компания": entry_meeting_company.get(),
+            "Дата": entry_meeting_date.get(),
+            "Организаторы": int(entry_meeting_org.get()),
+            "Участники": int(entry_meeting_uch.get()),
+            "Гости": int(entry_meeting_guest.get()),
+            "Сумма": int(entry_meeting_sum.get())
+        }
+        update_meeting_listbox()
+        clear_meeting_fields()
+        listbox_meetings.selection_clear(0, tk.END)
+    except IndexError:
+        messagebox.showwarning("Не выбрано", "Сначала выберите встречу в списке.")
+
+def delete_selected_meeting():
+    try:
+        idx = listbox_meetings.curselection()[0]
+        del meetings[idx]
+        update_meeting_listbox()
+        clear_meeting_fields()
+    except IndexError:
+        messagebox.showwarning("Не выбрано", "Сначала выберите встречу в списке.")
 
 def generate_docs():
     try:
         folder = filedialog.askdirectory(title="Выберите папку для сохранения документов")
         if not folder:
-            return  # пользователь отменил выбор
+            return
 
         data = {
             "ФИО": entry_fio.get(),
@@ -149,7 +204,7 @@ entry_guest = entries["КолГостей"]
 entry_sum_max = entries["СуммаПредельныхРасходов"]
 
 # Блок встреч
-tk.Label(root, text="Добавить встречу", font=("Arial", 10, "bold")).pack(pady=5)
+tk.Label(root, text="Добавить/Редактировать встречу", font=("Arial", 10, "bold")).pack(pady=5)
 meeting_frame = tk.Frame(root)
 meeting_frame.pack(pady=3)
 
@@ -174,8 +229,17 @@ entry_meeting_uch.grid(row=1, column=3)
 entry_meeting_guest.grid(row=1, column=4)
 entry_meeting_sum.grid(row=1, column=5)
 
-# Кнопки
-tk.Button(root, text="Добавить встречу", command=add_meeting).pack(pady=5)
+# Кнопки встречи
+tk.Button(root, text="Добавить встречу", command=add_meeting).pack(pady=2)
+tk.Button(root, text="Обновить выбранную встречу", command=update_selected_meeting).pack(pady=2)
+tk.Button(root, text="Удалить выбранную встречу", command=delete_selected_meeting).pack(pady=2)
+
+# Список встреч
+listbox_meetings = tk.Listbox(root, width=100, height=6)
+listbox_meetings.pack(padx=10, pady=5)
+listbox_meetings.bind('<<ListboxSelect>>', on_select_meeting)
+
+# Финальные кнопки
 tk.Button(root, text="Сгенерировать документы", command=generate_docs).pack(pady=5)
 tk.Button(root, text="Очистить форму", command=clear_form).pack(pady=5)
 
