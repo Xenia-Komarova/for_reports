@@ -1,7 +1,14 @@
+import sys
 import tkinter as tk
 from tkinter import messagebox, filedialog
 from docx import Document
 import os
+
+
+if getattr(sys, 'frozen', False):
+    BASE_DIR = sys._MEIPASS  # для .exe
+else:
+    BASE_DIR = os.path.dirname(__file__)
 
 def fill_template(data, template_path, output_path, meetings=None):
     doc = Document(template_path)
@@ -155,9 +162,17 @@ def generate_docs():
         start = data["НачалоКомандировки"]
         end = data["КонецКомандировки"]
 
-        fill_template(data, "template_prikaz.docx", os.path.join(folder, f"Приказ_{fio} {start} - {end}.docx"))
-        fill_template(data, "template_smeta.docx", os.path.join(folder, f"Смета_{fio} {start} - {end}.docx"))
-        fill_template(data, "template_otchet.docx", os.path.join(folder, f"Отчет_{fio} {start} - {end}.docx"), meetings)
+        template_prikaz = os.path.join(BASE_DIR, "template_prikaz.docx")
+        template_smeta = os.path.join(BASE_DIR, "template_smeta.docx")
+        template_otchet = os.path.join(BASE_DIR, "template_otchet.docx")
+
+        file_prikaz = f"Приказ {fio} {start} - {end}.docx"
+        file_smeta = f"Смета {fio} {start} - {end}.docx"
+        file_otchet = f"Отчёт {fio} {start} - {end}.docx"
+
+        fill_template(data, template_prikaz, os.path.join(folder, file_prikaz))
+        fill_template(data, template_smeta, os.path.join(folder, file_smeta))
+        fill_template(data, template_otchet, os.path.join(folder, file_otchet), meetings)
 
         messagebox.showinfo("Успех", f"Документы успешно созданы в папке:\n{folder}")
     except Exception as e:
